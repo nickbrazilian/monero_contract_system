@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Contract {contract_id}</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .contract-field { margin-bottom: 15px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .label { font-weight: bold; color: #333; margin-bottom: 5px; }
+        .value { word-break: break-word; font-family: monospace; white-space: pre-wrap; }
+        a { color: #007bff; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <h1>XMR Contract Details</h1>
+    
+    <div class="contract-field">
+        <div class="label">Contract ID:</div>
+        <div class="value">{contract_id}</div>
+    </div>
+    
+    <div class="contract-field">
+        <div class="label">Recipient Wallet:</div>
+        <div class="value">{recipient_wallet}</div>
+    </div>
+    
+    <div class="contract-field">
+        <div class="label">Payment Subaddress:</div>
+        <div class="value">{generated_subaddress}</div>
+    </div>
+    
+    <div class="contract-field">
+        <div class="label">Contract Text:</div>
+        <div class="value">{contract_text}</div>
+    </div>
+    
+    <div class="contract-field">
+        <div class="label">Recovery Passphrase:</div>
+        <div class="value">{passphrase}</div>
+    </div>
+</body>
+</html>

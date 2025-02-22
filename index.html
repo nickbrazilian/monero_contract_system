@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>XMR Contract Generator</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        input, textarea { width: 100%; padding: 8px; margin-top: 5px; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; cursor: pointer; }
+        #result { margin-top: 20px; padding: 15px; background: #f0f0f0; display: none; }
+        .address { word-break: break-all; font-family: monospace; }
+        textarea { height: 150px; }
+        a { color: #007bff; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <h1>XMR Contract Generator</h1>
+    
+    <form id="contractForm">
+        <div class="form-group">
+            <label>Contract Text:</label>
+            <textarea name="contract_text" required></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label>Recipient XMR Wallet:</label>
+            <input type="text" name="recipient_wallet" required>
+        </div>
+        
+        <button type="submit">Generate Contract</button>
+    </form>
+
+    <div id="result">
+        <h3>Generated Contract:</h3>
+        <p><strong>Contract ID:</strong> <span id="contractId" class="address"></span></p>
+        <p><strong>Passphrase:</strong> <span id="passphrase" class="address"></span></p>
+        <p><strong>Recipient Wallet:</strong> <span id="recipientWallet" class="address"></span></p>
+        <p><strong>Generated Subaddress:</strong> <span id="generatedSubaddress" class="address"></span></p>
+        <p><strong>Contract Link:</strong> <span id="contractLink" class="address"></span></p>
+    </div>
+
+    <script>
+        document.getElementById('contractForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                contract_text: e.target.contract_text.value,
+                recipient_wallet: e.target.recipient_wallet.value
+            };
+
+            try {
+                const response = await fetch('/contract', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) throw new Error(await response.text());
+                
+                const data = await response.json();
+                
+                document.getElementById('contractId').textContent = data.contract_id;
+                document.getElementById('passphrase').textContent = data.passphrase;
+                document.getElementById('recipientWallet').textContent = data.recipient_wallet;
+                document.getElementById('generatedSubaddress').textContent = data.generated_subaddress;
+                document.getElementById('contractLink').innerHTML = 
+                    `<a href="${data.contract_link}" target="_blank">${data.contract_link}</a>`;
+                document.getElementById('result').style.display = 'block';
+                
+                navigator.clipboard.writeText(data.generated_subaddress);
+                alert('XMR Subaddress copied to clipboard!');
+                
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>
