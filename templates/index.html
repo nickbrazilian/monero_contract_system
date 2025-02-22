@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>XMR Contract Manager</title>
+    <style>
+        body { max-width: 800px; margin: 0 auto; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        input, textarea { width: 100%; padding: 8px; }
+        button { background: #2196F3; color: white; border: none; padding: 10px 20px; }
+        #result { margin-top: 20px; padding: 15px; background: #f5f5f5; }
+        .monospace { font-family: monospace; word-break: break-all; }
+    </style>
+</head>
+<body>
+    <h1>Create XMR Contract</h1>
+    <form id="contractForm">
+        <div class="form-group">
+            <label>Contract Terms:</label>
+            <textarea name="contract_text" required></textarea>
+        </div>
+        <div class="form-group">
+            <label>Recipient Address:</label>
+            <input type="text" name="recipient_wallet" required>
+        </div>
+        <button type="submit">Create Contract</button>
+    </form>
+    <div id="result" style="display: none;">
+        <h3>Contract Created</h3>
+        <p><strong>ID:</strong> <span id="contractId" class="monospace"></span></p>
+        <p><strong>Passphrase:</strong> <span id="passphrase" class="monospace"></span></p>
+        <p><strong>Contract Address:</strong> <span id="contractWallet" class="monospace"></span></p>
+        <p><strong>Link:</strong> <a id="contractLink" target="_blank"></a></p>
+    </div>
+    <script>
+        document.getElementById('contractForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = {
+                contract_text: e.target.contract_text.value,
+                recipient_wallet: e.target.recipient_wallet.value
+            };
+
+            try {
+                const response = await fetch('/contract', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                document.getElementById('result').style.display = 'block';
+                document.getElementById('contractId').textContent = data.contract_id;
+                document.getElementById('passphrase').textContent = data.passphrase;
+                document.getElementById('contractWallet').textContent = data.contract_wallet;
+                document.getElementById('contractLink').href = data.contract_link;
+                document.getElementById('contractLink').textContent = data.contract_link;
+                navigator.clipboard.writeText(data.passphrase);
+                alert('Passphrase copied to clipboard!');
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>
