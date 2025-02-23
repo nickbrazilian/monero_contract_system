@@ -3,38 +3,84 @@
 <head>
     <title>Contract {contract_id}</title>
     <style>
-        body { max-width: 800px; margin: 0 auto; padding: 20px; }
-        .contract-field { margin-bottom: 15px; padding: 15px; border: 1px solid #ddd; }
-        .label { color: #666; margin-bottom: 5px; }
-        .value { font-family: monospace; word-break: break-all; }
-        .balance { color: #4CAF50; font-size: 1.2em; }
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .contract-field { margin-bottom: 15px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .label { font-weight: bold; color: #333; margin-bottom: 5px; }
+        .value { word-break: break-word; white-space: pre-wrap; }
+        .balance { color: #2ecc71; font-size: 1.2em; }
+        .release-form { margin-top: 30px; padding: 20px; background: #f8f8f8; border-radius: 5px; }
+        input[type="password"] { 
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button[type="submit"] { 
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+            width: 100%;
+        }
+        button[type="submit"]:hover { background: #219a52; }
+        .message { 
+            display: {message_display};
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .success { background: #dff0d8; color: #3c763d; border: 1px solid #d6e9c6; }
+        .error { background: #f2dede; color: #a94442; border: 1px solid #ebccd1; }
     </style>
 </head>
 <body>
     <h1>XMR Contract</h1>
+
+    <div class="message {msg_type}">{message}</div>
+
     <div class="contract-field">
-        <div class="label">Recipient Address</div>
+        <div class="label">Recipient Wallet:</div>
         <div class="value">{recipient_wallet}</div>
     </div>
+    
     <div class="contract-field">
-        <div class="label">Contract Address</div>
+        <div class="label">Contract Wallet:</div>
         <div class="value">{contract_wallet}</div>
     </div>
+    
     <div class="contract-field">
-        <div class="label">Current Balance</div>
+        <div class="label">Current Balance:</div>
         <div class="balance">{balance} XMR</div>
     </div>
+    
     <div class="contract-field">
-        <div class="label">Unlocked Balance</div>
+        <div class="label">Unlocked Balance:</div>
         <div class="balance">{unlocked_balance} XMR</div>
     </div>
+    
     <div class="contract-field">
-        <div class="label">Contract Terms</div>
+        <div class="label">Contract Terms:</div>
         <div class="value">{contract_text}</div>
     </div>
-    <div class="contract-field">
-        <div class="label">Release Passphrase</div>
-        <div class="value">{passphrase}</div>
+
+    <div class="release-form">
+        <h2>Release Funds</h2>
+        <form method="POST" action="/release/{contract_id}">
+            <input 
+                type="password" 
+                name="passphrase" 
+                placeholder="Enter passphrase to release funds" 
+                required
+            >
+            <button type="submit">Release Funds to Recipient</button>
+        </form>
     </div>
 </body>
 </html>
