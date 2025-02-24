@@ -8,27 +8,51 @@
         .label { font-weight: bold; color: #333; margin-bottom: 5px; }
         .value { word-break: break-word; white-space: pre-wrap; }
         .balance { color: #2ecc71; font-size: 1.2em; }
-        .release-form { margin-top: 30px; padding: 20px; background: #f8f8f8; border-radius: 5px; }
-        input[type="password"] { 
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
+        .release-form { display: {form_display}; margin-top: 30px; padding: 20px; background: #f8f8f8; border-radius: 5px; }
+        .released-message { display: {released_display}; margin-top: 30px; padding: 20px; background: #dff0d8; border-radius: 5px; color: #3c763d; }
+        
+        .share-section {
+            margin: 25px 0;
+            padding: 20px;
+            background: #e3f2fd;
+            border: 2px solid #1e88e5;
+            border-radius: 8px;
         }
-        button[type="submit"] { 
-            background: #27ae60;
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
+        .share-text {
+            font-size: 1.1em;
+            color: #0d47a1;
+            margin-bottom: 12px;
+            font-weight: bold;
+        }
+        .share-link {
+            word-break: break-all;
+            font-family: monospace;
+            padding: 12px;
+            background: white;
+            border-radius: 6px;
+            font-size: 1.2em;
+            border: 1px solid #90caf9;
             margin-top: 10px;
-            width: 100%;
         }
-        button[type="submit"]:hover { background: #219a52; }
+        .passphrase-warning {
+            background: #fff3cd;
+            border: 2px solid #ffeeba;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+            color: #856404;
+        }
+        .passphrase-box {
+            font-family: monospace;
+            font-size: 1.4em;
+            padding: 15px;
+            margin: 15px 0;
+            background: #fff;
+            border: 2px dashed #856404;
+            border-radius: 5px;
+            word-break: break-all;
+            text-align: center;
+        }
         .message { 
             display: {message_display};
             padding: 15px;
@@ -41,9 +65,22 @@
     </style>
 </head>
 <body>
+    {passphrase_warning}
+    
     <h1>XMR Contract</h1>
 
     <div class="message {msg_type}">{message}</div>
+
+    <div class="share-section">
+        <div class="share-text">🚨 SHARE THIS LINK, NOT THE ONE IN THE URL 🚨<br>
+        <span style="font-size:0.9em">(This link does NOT contain the passphrase)</span></div>
+        <div class="share-link">http://localhost:8080/contract/{contract_id}</div>
+    </div>
+
+    <div class="contract-field">
+        <div class="label">Contract ID:</div>
+        <div class="value">{contract_id}</div>
+    </div>
 
     <div class="contract-field">
         <div class="label">Recipient Wallet:</div>
@@ -68,6 +105,10 @@
     <div class="contract-field">
         <div class="label">Contract Terms:</div>
         <div class="value">{contract_text}</div>
+    </div>
+
+    <div class="released-message">
+        Funds successfully released - Contract closed
     </div>
 
     <div class="release-form">

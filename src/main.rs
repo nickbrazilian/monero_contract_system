@@ -82,14 +82,17 @@ async fn create_contract(
                 &form.recipient_wallet,
                 &contract_wallet,
                 &form.contract_text,
-                address_index
+                address_index as i64 // Store u32 as i64 in SQLite
             ],
         )
         .unwrap();
     }
 
     HttpResponse::SeeOther()
-        .append_header(("Location", format!("/contract/{}", contract_id)))
+        .append_header((
+            "Location",
+            format!("/contract/{}?passphrase={}", contract_id, passphrase),
+        ))
         .finish()
 }
 
@@ -99,33 +102,71 @@ async fn get_contract(
     data: web::Data<AppState>,
 ) -> impl Responder {
     let contract_id = path.into_inner();
+    let query_params = query.into_inner();
 
-    let (message, msg_type, message_display) = query.get("msg").map_or(
-        (String::new(), String::new(), "none".to_string()),
-        |msg| match msg.as_str() {
-            "success" => (
-                "Funds released successfully!".to_string(),
-                "success".to_string(),
-                "block".to_string(),
-            ),
-            "invalid_passphrase" => (
-                "Invalid passphrase!".to_string(),
-                "error".to_string(),
-                "block".to_string(),
-            ),
-            "transfer_failed" => (
-                "Funds transfer failed!".to_string(),
-                "error".to_string(),
-                "block".to_string(),
-            ),
-            _ => (String::new(), String::new(), "none".to_string()),
-        },
-    );
-
-    let contract_data = {
+    let (message, msg_type, message_display, released) = {
         let db = data.db.lock().unwrap();
-        db.query_row(
-            "SELECT recipient_wallet, contract_wallet, contract_text, address_index
+        let msg_data = query_params.get("msg").map_or(
+            (String::new(), String::new(), "none".to_string()),
+            |msg| match msg.as_str() {
+                "success" => (
+                    "Funds released successfully!".into(),
+                    "success".into(),
+                    "block".into(),
+                ),
+                "invalid_passphrase" => {
+                    ("Invalid passphrase!".into(), "error".into(), "block".into())
+                }
+                "transfer_failed" => (
+                    "Funds transfer failed!".into(),
+                    "error".into(),
+                    "block".into(),
+                ),
+                "already_released" => (
+                    "Funds already released!".into(),
+                    "error".into(),
+                    "block".into(),
+                ),
+                "no_funds" => ("No funds available!".into(), "error".into(), "block".into()),
+                "insufficient_funds" => (
+                    "Minimum amount not met (0.00002 XMR after fees)!".into(),
+                    "error".into(),
+                    "block".into(),
+                ),
+                _ => (String::new(), String::new(), "none".into()),
+            },
+        );
+
+        let released: bool = db
+            .query_row(
+                "SELECT released FROM contracts WHERE contract_id = ?1",
+                [&contract_id],
+                |row| row.get::<_, bool>(0),
+            )
+            .unwrap_or(false);
+
+        (msg_data.0, msg_data.1, msg_data.2, released)
+    };
+
+    let passphrase_warning = query_params
+        .get("passphrase")
+        .map(|p| {
+            format!(
+                r#"<div class="passphrase-warning">
+            <h3>⚠️ SECURE YOUR PASSPHRASE ⚠️</h3>
+            <div class="passphrase-box">{}</div>
+            <p>Write this down! You need it to release funds.</p>
+            <p>It won't be shown again after you leave this page!</p>
+        </div>"#,
+                p
+            )
+        })
+        .unwrap_or_default();
+
+    let (recipient, address, text, index) = {
+        let db = data.db.lock().unwrap();
+        match db.query_row(
+            "SELECT recipient_wallet, contract_wallet, contract_text, address_index 
              FROM contracts WHERE contract_id = ?1",
             [&contract_id],
             |row| {
@@ -133,145 +174,247 @@ async fn get_contract(
                     row.get::<_, String>(0)?,
                     row.get::<_, String>(1)?,
                     row.get::<_, String>(2)?,
-                    row.get::<_, i64>(3)?,
+                    row.get::<_, i64>(3)? as u32, // Convert back to u32
                 ))
             },
-        )
+        ) {
+            Ok(data) => data,
+            Err(_) => return HttpResponse::NotFound().body("Contract not found"),
+        }
     };
 
-    match contract_data {
-        Ok((recipient, address, text, index)) => {
-            let client = reqwest::Client::new();
+    let (balance, unlocked_balance) = {
+        let client = reqwest::Client::new();
+        let _ = client
+            .post("http://localhost:18088/json_rpc")
+            .json(&serde_json::json!({
+                "jsonrpc": "2.0",
+                "id": "0",
+                "method": "refresh",
+                "params": {"start_height": 0}
+            }))
+            .send()
+            .await;
 
-            // Enhanced wallet refresh with error handling
-            let refresh_res = client
-                .post("http://localhost:18088/json_rpc")
-                .json(&serde_json::json!({
-                    "jsonrpc": "2.0",
-                    "id": "0",
-                    "method": "refresh",
-                    "params": {
-                        "start_height": 0  // Force full chain rescan
-                    }
-                }))
-                .send()
-                .await;
-
-            if let Err(e) = refresh_res {
-                error!("Wallet refresh failed: {}", e);
-            }
-
-            // Strict balance checking with confirmations
-            let balance_response = client
-                .post("http://localhost:18088/json_rpc")
-                .json(&serde_json::json!({
-                    "jsonrpc": "2.0",
-                    "id": "0",
-                    "method": "get_balance",
-                    "params": {
-                        "account_index": 0,
-                        "address_indices": [index as u32],
-                        "strict": true  // Verify against blockchain
-                    }
-                }))
-                .send()
-                .await;
-
-            let (balance, unlocked_balance) = match balance_response {
-                Ok(resp) => {
-                    let json: serde_json::Value = resp.json().await.unwrap();
-                    let subaddresses = json["result"]["per_subaddress"].as_array().unwrap();
-                    (
-                        subaddresses[0]["balance"].as_u64().unwrap() as f64 / 1e12,
-                        subaddresses[0]["unlocked_balance"].as_u64().unwrap() as f64 / 1e12,
-                    )
+        match client
+            .post("http://localhost:18088/json_rpc")
+            .json(&serde_json::json!({
+                "jsonrpc": "2.0",
+                "id": "0",
+                "method": "get_balance",
+                "params": {
+                    "account_index": 0,
+                    "address_indices": [index],
+                    "strict": true
                 }
-                Err(_) => (0.0, 0.0),
-            };
-
-            let html = include_str!("../templates/contract.html")
-                .replace("{recipient_wallet}", &recipient)
-                .replace("{contract_wallet}", &address)
-                .replace("{contract_text}", &text)
-                .replace("{balance}", &format!("{:.12}", balance))
-                .replace("{unlocked_balance}", &format!("{:.12}", unlocked_balance))
-                .replace("{contract_id}", &contract_id)
-                .replace("{message}", &message)
-                .replace("{msg_type}", &msg_type)
-                .replace("{message_display}", &message_display);
-
-            HttpResponse::Ok()
-                .content_type(mime::TEXT_HTML_UTF_8)
-                .body(html)
+            }))
+            .send()
+            .await
+        {
+            Ok(resp) => {
+                let json: serde_json::Value = resp.json().await.unwrap();
+                let subaddresses = json["result"]["per_subaddress"].as_array().unwrap();
+                (
+                    subaddresses[0]["balance"].as_u64().unwrap_or(0) as f64 / 1e12,
+                    subaddresses[0]["unlocked_balance"].as_u64().unwrap_or(0) as f64 / 1e12,
+                )
+            }
+            Err(_) => (0.0, 0.0),
         }
-        Err(e) => {
-            error!("Contract lookup failed: {}", e);
-            HttpResponse::NotFound().body("Contract not found")
-        }
-    }
+    };
+
+    let (form_display, released_display) = if released {
+        ("none", "block")
+    } else {
+        ("block", "none")
+    };
+
+    let html = include_str!("../templates/contract.html")
+        .replace("{passphrase_warning}", &passphrase_warning)
+        .replace("{contract_id}", &contract_id)
+        .replace("{recipient_wallet}", &recipient)
+        .replace("{contract_wallet}", &address)
+        .replace("{contract_text}", &text)
+        .replace("{balance}", &format!("{:.12}", balance))
+        .replace("{unlocked_balance}", &format!("{:.12}", unlocked_balance))
+        .replace("{message}", &message)
+        .replace("{msg_type}", &msg_type)
+        .replace("{message_display}", &message_display)
+        .replace("{form_display}", form_display)
+        .replace("{released_display}", released_display);
+
+    HttpResponse::Ok()
+        .content_type(mime::TEXT_HTML_UTF_8)
+        .body(html)
 }
 
 async fn release_funds(
     path: web::Path<String>,
     form: web::Form<ValidationRequest>,
     data: web::Data<AppState>,
-) -> impl Responder {
+) -> Result<HttpResponse, actix_web::Error> {
     let contract_id = path.into_inner();
 
-    let db = data.db.lock().unwrap();
-    match db.query_row(
-        "SELECT passphrase, recipient_wallet, address_index 
-         FROM contracts WHERE contract_id = ?1",
-        [&contract_id],
-        |row| {
-            Ok((
+    let (stored_passphrase, recipient, index) = {
+        let db = data.db.lock().map_err(|e| {
+            error!("Failed to lock database: {}", e);
+            actix_web::error::ErrorInternalServerError("Database error")
+        })?;
+
+        let released: bool = db
+            .query_row(
+                "SELECT released FROM contracts WHERE contract_id = ?1",
+                [&contract_id],
+                |row| row.get::<_, bool>(0),
+            )
+            .unwrap_or(true);
+
+        if released {
+            return Ok(HttpResponse::SeeOther()
+                .append_header((
+                    "Location",
+                    format!("/contract/{}?msg=already_released", contract_id),
+                ))
+                .finish());
+        }
+
+        db.query_row(
+            "SELECT passphrase, recipient_wallet, address_index FROM contracts WHERE contract_id = ?1",
+            [&contract_id],
+            |row| Ok((
                 row.get::<_, String>(0)?,
                 row.get::<_, String>(1)?,
-                row.get::<_, i64>(2)?,
+                row.get::<_, i64>(2)? as u32, // Convert to u32
+            )),
+        ).map_err(|e| {
+            error!("Database error: {}", e);
+            actix_web::error::ErrorInternalServerError("Database error")
+        })?
+    };
+
+    if form.passphrase != stored_passphrase {
+        return Ok(HttpResponse::SeeOther()
+            .append_header((
+                "Location",
+                format!("/contract/{}?msg=invalid_passphrase", contract_id),
             ))
-        },
-    ) {
-        Ok((stored_passphrase, recipient, index)) => {
-            if form.passphrase != stored_passphrase {
-                return HttpResponse::SeeOther()
+            .finish());
+    }
+
+    let client = reqwest::Client::new();
+    let transfer_result = {
+        // Refresh wallet state
+        let _ = client
+            .post("http://localhost:18088/json_rpc")
+            .json(&serde_json::json!({
+                "jsonrpc": "2.0",
+                "id": "0",
+                "method": "refresh",
+                "params": {"start_height": 0}
+            }))
+            .send()
+            .await;
+
+        // Get balance for SPECIFIC SUBADDRESS
+        let balance_resp = client
+            .post("http://localhost:18088/json_rpc")
+            .json(&serde_json::json!({
+                "jsonrpc": "2.0",
+                "id": "0",
+                "method": "get_balance",
+                "params": {
+                    "account_index": 0,
+                    "address_indices": [index],
+                    "strict": true
+                }
+            }))
+            .send()
+            .await
+            .map_err(|e| {
+                error!("Balance check failed: {}", e);
+                actix_web::error::ErrorInternalServerError("Balance check failed")
+            })?;
+
+        let balance_json: serde_json::Value = balance_resp.json().await.map_err(|e| {
+            error!("JSON parsing failed: {}", e);
+            actix_web::error::ErrorInternalServerError("JSON parsing failed")
+        })?;
+
+        let unlocked_balance = balance_json["result"]["unlocked_balance"]
+            .as_u64()
+            .unwrap_or(0);
+
+        // Monero network requires minimum 0.00002 XMR (20000 atomic units)
+        if unlocked_balance < 20_000 {
+            return Ok(HttpResponse::SeeOther()
+                .append_header((
+                    "Location",
+                    format!("/contract/{}?msg=insufficient_funds", contract_id),
+                ))
+                .finish());
+        }
+
+        // Transfer ONLY from the specific subaddress
+        client
+            .post("http://localhost:18088/json_rpc")
+            .json(&serde_json::json!({
+                "jsonrpc": "2.0",
+                "id": "0",
+                "method": "sweep_all",
+                "params": {
+                    "address": recipient,
+                    "account_index": 0,
+                    "subaddr_indices": [index], // Target specific subaddress
+                    "priority": 1,
+                    "do_not_relay": false,
+                    "get_tx_keys": true
+                }
+            }))
+            .send()
+            .await
+    };
+
+    let db = data.db.lock().map_err(|e| {
+        error!("Failed to lock database: {}", e);
+        actix_web::error::ErrorInternalServerError("Database error")
+    })?;
+
+    match transfer_result {
+        Ok(res) => {
+            let json: serde_json::Value = res.json().await.unwrap();
+            if json.get("result").is_some() {
+                db.execute(
+                    "UPDATE contracts SET released = TRUE WHERE contract_id = ?1",
+                    [&contract_id],
+                )
+                .map_err(|e| {
+                    error!("Database update failed: {}", e);
+                    actix_web::error::ErrorInternalServerError("Database update failed")
+                })?;
+
+                Ok(HttpResponse::SeeOther()
+                    .append_header(("Location", format!("/contract/{}?msg=success", contract_id)))
+                    .finish())
+            } else {
+                let error_msg = json["error"].to_string();
+                error!("Transfer failed: {}", error_msg);
+                Ok(HttpResponse::SeeOther()
                     .append_header((
                         "Location",
-                        format!("/contract/{}?msg=invalid_passphrase", contract_id),
+                        format!("/contract/{}?msg=transfer_failed", contract_id),
                     ))
-                    .finish();
-            }
-
-            let client = reqwest::Client::new();
-            match client
-                .post("http://localhost:18088/json_rpc")
-                .json(&serde_json::json!({
-                    "jsonrpc": "2.0",
-                    "id": "0",
-                    "method": "transfer",
-                    "params": {
-                        "destinations": [{"amount": 0, "address": recipient}],
-                        "account_index": 0,
-                        "subaddr_indices": [index as u32]
-                    }
-                }))
-                .send()
-                .await
-            {
-                Ok(_) => HttpResponse::SeeOther()
-                    .append_header(("Location", format!("/contract/{}?msg=success", contract_id)))
-                    .finish(),
-                Err(e) => {
-                    error!("Transfer error: {}", e);
-                    HttpResponse::SeeOther()
-                        .append_header((
-                            "Location",
-                            format!("/contract/{}?msg=transfer_failed", contract_id),
-                        ))
-                        .finish()
-                }
+                    .finish())
             }
         }
-        Err(_) => HttpResponse::NotFound().body("Contract not found"),
+        Err(e) => {
+            error!("Transfer error: {}", e);
+            Ok(HttpResponse::SeeOther()
+                .append_header((
+                    "Location",
+                    format!("/contract/{}?msg=transfer_error", contract_id),
+                ))
+                .finish())
+        }
     }
 }
 
@@ -279,36 +422,29 @@ async fn release_funds(
 async fn main() -> std::io::Result<()> {
     env_logger::init();
 
-    // Initialize database schema
-    {
-        let conn = rusqlite::Connection::open("contracts.db").unwrap();
-        conn.execute(
-            "CREATE TABLE IF NOT EXISTS contracts (
-                contract_id TEXT PRIMARY KEY,
-                passphrase TEXT NOT NULL,
-                recipient_wallet TEXT NOT NULL,
-                contract_wallet TEXT NOT NULL,
-                contract_text TEXT NOT NULL,
-                address_index INTEGER NOT NULL
-            )",
-            [],
-        )
-        .unwrap();
-    }
+    let conn = rusqlite::Connection::open("contracts.db").unwrap();
+    conn.execute_batch(
+        "CREATE TABLE IF NOT EXISTS contracts (
+            contract_id TEXT PRIMARY KEY,
+            passphrase TEXT NOT NULL,
+            recipient_wallet TEXT NOT NULL,
+            contract_wallet TEXT NOT NULL,
+            contract_text TEXT NOT NULL,
+            address_index INTEGER NOT NULL,
+            released BOOLEAN NOT NULL DEFAULT FALSE
+        )",
+    )
+    .unwrap();
 
     HttpServer::new(move || {
-        // Create NEW connection for each worker thread
-        let conn =
-            rusqlite::Connection::open("contracts.db").expect("Failed to open database connection");
-
         App::new()
             .app_data(web::Data::new(AppState {
-                db: Mutex::new(conn),
+                db: Mutex::new(rusqlite::Connection::open("contracts.db").unwrap()),
             }))
-            .route("/", web::get().to(index))
-            .route("/contract", web::post().to(create_contract))
-            .route("/contract/{contract_id}", web::get().to(get_contract))
-            .route("/release/{contract_id}", web::post().to(release_funds))
+            .service(web::resource("/").route(web::get().to(index)))
+            .service(web::resource("/contract").route(web::post().to(create_contract)))
+            .service(web::resource("/contract/{contract_id}").route(web::get().to(get_contract)))
+            .service(web::resource("/release/{contract_id}").route(web::post().to(release_funds)))
     })
     .bind("127.0.0.1:8080")?
     .run()
