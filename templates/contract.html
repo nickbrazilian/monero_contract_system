@@ -1,79 +1,185 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Contract {contract_id}</title>
+    <title>🔏🛡️ Contract {contract_id}</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
-        .contract-field { margin-bottom: 15px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
-        .label { font-weight: bold; color: #333; margin-bottom: 5px; }
-        .value { word-break: break-word; white-space: pre-wrap; }
-        .balance { color: #2ecc71; font-size: 1.2em; }
-        .release-form { display: {form_display}; margin-top: 30px; padding: 20px; background: #f8f8f8; border-radius: 5px; }
-        .released-message { display: {released_display}; margin-top: 30px; padding: 20px; background: #dff0d8; border-radius: 5px; color: #3c763d; }
-        
-        .share-section {
-            margin: 25px 0;
+        body { 
+            font-family: 'Arial', sans-serif; 
+            max-width: 800px; 
+            margin: 0 auto; 
             padding: 20px;
-            background: #e3f2fd;
-            border: 2px solid #1e88e5;
-            border-radius: 8px;
+            background: #0a0a0a repeating-linear-gradient(
+                -45deg,
+                rgba(255, 102, 0, 0.1),
+                rgba(255, 102, 0, 0.1) 5px,
+                transparent 5px,
+                transparent 10px
+            );
+            color: #FF9933;
+        }
+        .contract-field { 
+            margin-bottom: 1rem; 
+            padding: 1.5rem;
+            border: 2px groove #FF6600;
+            background: rgba(16, 16, 16, 0.9);
+            border-radius: 3px;
+        }
+        .label { 
+            font-weight: bold; 
+            color: #FFA366; 
+            margin-bottom: 0.5rem;
+            font-family: 'Comic Sans MS', cursive;
+        }
+        .value { 
+            word-break: break-word; 
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            color: #FFCC99;
+        }
+        .balance { 
+            color: #2ecc71; 
+            font-size: 1.3em;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(46, 204, 113, 0.3);
+        }
+        .release-form { 
+            display: {form_display}; 
+            margin-top: 2rem; 
+            padding: 2rem;
+            background: rgba(16, 16, 16, 0.9);
+            border: 3px outset #FF6600;
+            border-radius: 5px;
+        }
+        .released-message { 
+            display: {released_display}; 
+            margin-top: 2rem; 
+            padding: 1.5rem;
+            background: #1a3d1a;
+            border: 2px solid #2ecc71;
+            color: #2ecc71;
+            font-family: 'Courier New', monospace;
+        }
+        .share-section {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: rgba(16, 16, 16, 0.9);
+            border: 3px double #FF6600;
+            border-radius: 5px;
         }
         .share-text {
             font-size: 1.1em;
-            color: #0d47a1;
-            margin-bottom: 12px;
-            font-weight: bold;
+            color: #FFA366;
+            margin-bottom: 1rem;
+            text-align: center;
         }
         .share-link {
             word-break: break-all;
-            font-family: monospace;
-            padding: 12px;
-            background: white;
-            border-radius: 6px;
-            font-size: 1.2em;
-            border: 1px solid #90caf9;
-            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            padding: 1rem;
+            background: #1a1a1a;
+            border-radius: 3px;
+            font-size: 1.1em;
+            border: 2px inset #4D1A00;
+            color: #FF9933;
+            text-align: center;
         }
         .passphrase-warning {
-            background: #fff3cd;
-            border: 2px solid #ffeeba;
+            background: rgba(255, 204, 153, 0.1);
+            border: 2px dashed #FF6600;
             border-radius: 5px;
-            padding: 20px;
-            margin: 20px 0;
-            color: #856404;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            color: #FFA366;
+            font-family: 'Courier New', monospace;
         }
         .passphrase-box {
-            font-family: monospace;
-            font-size: 1.4em;
-            padding: 15px;
-            margin: 15px 0;
-            background: #fff;
-            border: 2px dashed #856404;
+            font-family: 'Courier New', monospace;
+            font-size: 1.3em;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            background: #1a1a1a;
+            border: 2px dotted #FF6600;
             border-radius: 5px;
             word-break: break-all;
             text-align: center;
+            color: #FF9933;
         }
         .message { 
             display: {message_display};
-            padding: 15px;
-            margin: 20px 0;
+            padding: 1.5rem;
+            margin: 2rem 0;
             border-radius: 5px;
-            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            border: 2px solid;
         }
-        .success { background: #dff0d8; color: #3c763d; border: 1px solid #d6e9c6; }
-        .error { background: #f2dede; color: #a94442; border: 1px solid #ebccd1; }
+        .success { 
+            background: rgba(46, 204, 113, 0.1); 
+            color: #2ecc71; 
+            border-color: #2ecc71;
+        }
+        .error { 
+            background: rgba(204, 46, 46, 0.1); 
+            color: #cc2e2e; 
+            border-color: #cc2e2e;
+        }
+        h1 {
+            font-family: 'Comic Sans MS', cursive;
+            color: #FF6600;
+            text-align: center;
+            margin: 2rem 0;
+            text-shadow: 2px 2px 0 #4D1A00;
+            position: relative;
+        }
+        h1:before, h1:after {
+            content: '🛡️';
+            position: absolute;
+            font-size: 1.5rem;
+            top: -0.5rem;
+        }
+        h1:before { left: 1rem; }
+        h1:after { right: 1rem; }
+        input[type="password"] {
+            width: 100%;
+            padding: 1rem;
+            margin: 1rem 0;
+            background: #1a1a1a;
+            border: 2px inset #4D1A00;
+            color: #FF9933;
+            font-family: 'Courier New', monospace;
+        }
+        button {
+            background: #4D1A00;
+            color: #FF9933;
+            border: 3px outset #FF6600;
+            padding: 1rem 2rem;
+            width: 100%;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        button:hover {
+            background: #661F00;
+            border-style: inset;
+        }
+        .footer {
+            text-align: center;
+            color: #666;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid #4D1A00;
+        }
     </style>
 </head>
 <body>
     {passphrase_warning}
     
-    <h1>XMR Contract</h1>
+    <h1>🔐 XMR Contract</h1>
 
     <div class="message {msg_type}">{message}</div>
 
     <div class="share-section">
-        <div class="share-text">🚨 SHARE THIS LINK, NOT THE ONE IN THE URL 🚨<br>
-        <span style="font-size:0.9em">(This link does NOT contain the passphrase)</span></div>
+        <div class="share-text">🚫 SHARE THIS LINK ONLY �<br>
+        <span style="font-size:0.9em">(Passphrase-free access)</span></div>
         <div class="share-link">http://localhost:8080/contract/{contract_id}</div>
     </div>
 
@@ -83,36 +189,36 @@
     </div>
 
     <div class="contract-field">
-        <div class="label">Recipient Wallet:</div>
+        <div class="label">🔒 Recipient Wallet:</div>
         <div class="value">{recipient_wallet}</div>
     </div>
     
     <div class="contract-field">
-        <div class="label">Contract Wallet:</div>
+        <div class="label">📦 Contract Wallet:</div>
         <div class="value">{contract_wallet}</div>
     </div>
     
     <div class="contract-field">
-        <div class="label">Current Balance:</div>
+        <div class="label">💰 Current Balance:</div>
         <div class="balance">{balance} XMR</div>
     </div>
     
     <div class="contract-field">
-        <div class="label">Unlocked Balance:</div>
+        <div class="label">🔓 Unlocked Balance:</div>
         <div class="balance">{unlocked_balance} XMR</div>
     </div>
     
     <div class="contract-field">
-        <div class="label">Contract Terms:</div>
+        <div class="label">📜 Contract Terms:</div>
         <div class="value">{contract_text}</div>
     </div>
 
     <div class="released-message">
-        Funds successfully released - Contract closed
+        ✅ Funds Released - Contract Closed 🔒
     </div>
 
     <div class="release-form">
-        <h2>Release Funds</h2>
+        <h2 style="color: #FF6600; text-align: center">🔓 Release Funds</h2>
         <form method="POST" action="/release/{contract_id}">
             <input 
                 type="password" 
@@ -120,8 +226,12 @@
                 placeholder="Enter passphrase to release funds" 
                 required
             >
-            <button type="submit">Release Funds to Recipient</button>
+            <button type="submit">⚡ Release to Recipient</button>
         </form>
+    </div>
+
+    <div class="footer">
+         • Copyleft Nicolas Bianconi
     </div>
 </body>
 </html>

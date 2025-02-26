@@ -446,7 +446,7 @@ async fn main() -> std::io::Result<()> {
             .service(web::resource("/contract/{contract_id}").route(web::get().to(get_contract)))
             .service(web::resource("/release/{contract_id}").route(web::post().to(release_funds)))
     })
-    .bind("127.0.0.1:8080")?
+    .bind("0.0.0.0:8080")?
     .run()
     .await
 }
