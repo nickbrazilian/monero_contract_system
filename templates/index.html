@@ -1,130 +1,41 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>🔒🤝 Secure Contracts 🛡️</title>
-    <style>
-        body { 
-            max-width: 600px; 
-            margin: 0 auto; 
-            padding: 20px;
-            background: #0a0a0a repeating-linear-gradient(
-                -45deg,
-                rgba(255, 102, 0, 0.1),
-                rgba(255, 102, 0, 0.1) 5px,
-                transparent 5px,
-                transparent 10px
-            );
-            color: #FF9933;
-            font-family: 'Arial', sans-serif;
-        }
-        .contract-wrapper {
-            background: rgba(0, 0, 0, 0.8);
-            border: 3px solid #FF6600;
-            padding: 2rem;
-            margin-top: 2rem;
-            box-shadow: 0 0 20px rgba(255, 102, 0, 0.2);
-        }
-        h1 {
-            font-family: 'Comic Sans MS', cursive;
-            text-align: center;
-            color: #FF6600;
-            font-size: 2.8rem;
-            margin: 0 0 2rem 0;
-            position: relative;
-        }
-        h1:before, h1:after {
-            content: '🛡️';
-            position: absolute;
-            font-size: 1.5rem;
-            top: -0.5rem;
-        }
-        h1:before { left: 1rem; }
-        h1:after { right: 1rem; }
-        .monero-principles {
-            text-align: center;
-            color: #FFA366;
-            margin: 1rem 0;
-            font-style: italic;
-        }
-        .form-group { 
-            margin: 1.5rem 0;
-            padding: 1rem;
-            border: 2px groove #FF6600;
-            background: rgba(16, 16, 16, 0.9);
-        }
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: #FFA366;
-            font-weight: bold;
-        }
-        input, textarea { 
-            width: 100%; 
-            padding: 0.8rem;
-            margin: 0.5rem 0;
-            border: 2px inset #4D1A00;
-            background: #1a1a1a;
-            color: #FFA366;
-            font-family: 'Courier New', monospace;
-            box-sizing: border-box;
-        }
-        textarea {
-            min-height: 120px;
-            resize: vertical;
-        }
-        button { 
-            background: #4D1A00;
-            color: #FF9933;
-            border: 3px outset #FF6600;
-            padding: 1rem 2rem;
-            margin: 1.5rem auto;
-            display: block;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        button:hover {
-            background: #661F00;
-            border-style: inset;
-        }
-        .footer {
-            text-align: center;
-            color: #666;
-            margin-top: 2rem;
-            padding-top: 1rem;
-            border-top: 1px solid #4D1A00;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>🔒🤝 Secure Contracts 🛡️</title>
+  <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <div class="contract-wrapper">
-        <h1>🤝 Monero Contract System 🔏</h1>
-        
-        <div class="monero-principles">
-            Private • Secure • Untraceable<br>
-            🪙 In escrow we trust
-            THIS STAGENET ONLY
-        </div>
-
-        <form action="/contract" method="post">
-            <div class="form-group">
-                <label>📜 Contract Terms:</label>
-                <textarea name="contract_text" required rows="6" 
-                    placeholder="Your terms are encrypted client-side..."></textarea>
-            </div>
-            
-            <div class="form-group">
-                <label>💰 Recipient Monero Address:</label>
-                <input type="text" name="recipient_wallet" required 
-                    placeholder="Enter Monero address (starts with 4/8)">
-            </div>
-            
-            <button type="submit">🖋️ Seal Contract (XMR)</button>
-        </form>
-
-        <div class="footer">
-            Alpha 0.0.1 | Copyleft Nicolas Bianconi<br>
-        </div>
+  <div class="contract-wrapper">
+    <h1>🤝 Monero Contract System 🔏</h1>
+    
+    <div class="monero-principles">
+      Private • Secure • Untraceable<br>
+      🪙 In escrow we trust<br>
+      THIS STAGENET ONLY
     </div>
+
+    <form action="/contract" method="post">
+      <div class="form-group">
+        <label for="contract_text">📜 Contract Terms:</label>
+        <textarea id="contract_text" name="contract_text" required rows="6"
+          placeholder="Your terms are encrypted client-side..."></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label for="recipient_wallet">💰 Recipient Monero Address:</label>
+        <input type="text" id="recipient_wallet" name="recipient_wallet" required
+          placeholder="Enter Monero address (starts with 4/8)">
+      </div>
+      
+      <button type="submit">🖋️ Seal Contract (XMR)</button>
+    </form>
+
+    <div class="footer">
+      Alpha 0.0.1 | Copyleft Nicolas Bianconi<br>
+    </div>
+  </div>
 </body>
 </html>
+

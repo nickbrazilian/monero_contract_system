@@ -1,3 +1,4 @@
+use actix_files::Files;
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use log::error;
 use rand::{distributions::Alphanumeric, Rng};
@@ -23,7 +24,7 @@ struct ValidationRequest {
 
 async fn index() -> impl Responder {
     HttpResponse::Ok()
-        .content_type(mime::TEXT_HTML_UTF_8)
+        .content_type("text/html; charset=utf-8")
         .body(include_str!("../templates/index.html"))
 }
 
@@ -74,15 +75,16 @@ async fn create_contract(
                 recipient_wallet, 
                 contract_wallet, 
                 contract_text, 
-                address_index
-            ) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+                address_index,
+                released
+            ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, 0)",
             params![
                 &contract_id,
                 &passphrase,
                 &form.recipient_wallet,
                 &contract_wallet,
                 &form.contract_text,
-                address_index as i64 // Store u32 as i64 in SQLite
+                address_index as i64
             ],
         )
         .unwrap();
@@ -174,7 +176,7 @@ async fn get_contract(
                     row.get::<_, String>(0)?,
                     row.get::<_, String>(1)?,
                     row.get::<_, String>(2)?,
-                    row.get::<_, i64>(3)? as u32, // Convert back to u32
+                    row.get::<_, i64>(3)? as u32,
                 ))
             },
         ) {
@@ -244,7 +246,7 @@ async fn get_contract(
         .replace("{released_display}", released_display);
 
     HttpResponse::Ok()
-        .content_type(mime::TEXT_HTML_UTF_8)
+        .content_type("text/html; charset=utf-8")
         .body(html)
 }
 
@@ -284,7 +286,7 @@ async fn release_funds(
             |row| Ok((
                 row.get::<_, String>(0)?,
                 row.get::<_, String>(1)?,
-                row.get::<_, i64>(2)? as u32, // Convert to u32
+                row.get::<_, i64>(2)? as u32,
             )),
         ).map_err(|e| {
             error!("Database error: {}", e);
@@ -303,7 +305,6 @@ async fn release_funds(
 
     let client = reqwest::Client::new();
     let transfer_result = {
-        // Refresh wallet state
         let _ = client
             .post("http://localhost:18088/json_rpc")
             .json(&serde_json::json!({
@@ -315,7 +316,6 @@ async fn release_funds(
             .send()
             .await;
 
-        // Get balance for SPECIFIC SUBADDRESS
         let balance_resp = client
             .post("http://localhost:18088/json_rpc")
             .json(&serde_json::json!({
@@ -344,7 +344,6 @@ async fn release_funds(
             .as_u64()
             .unwrap_or(0);
 
-        // Monero network requires minimum 0.00002 XMR (20000 atomic units)
         if unlocked_balance < 20_000 {
             return Ok(HttpResponse::SeeOther()
                 .append_header((
@@ -354,7 +353,6 @@ async fn release_funds(
                 .finish());
         }
 
-        // Transfer ONLY from the specific subaddress
         client
             .post("http://localhost:18088/json_rpc")
             .json(&serde_json::json!({
@@ -364,7 +362,7 @@ async fn release_funds(
                 "params": {
                     "address": recipient,
                     "account_index": 0,
-                    "subaddr_indices": [index], // Target specific subaddress
+                    "subaddr_indices": [index],
                     "priority": 1,
                     "do_not_relay": false,
                     "get_tx_keys": true
@@ -396,8 +394,7 @@ async fn release_funds(
                     .append_header(("Location", format!("/contract/{}?msg=success", contract_id)))
                     .finish())
             } else {
-                let error_msg = json["error"].to_string();
-                error!("Transfer failed: {}", error_msg);
+                error!("Transfer failed: {}", json["error"]);
                 Ok(HttpResponse::SeeOther()
                     .append_header((
                         "Location",
@@ -431,7 +428,7 @@ async fn main() -> std::io::Result<()> {
             contract_wallet TEXT NOT NULL,
             contract_text TEXT NOT NULL,
             address_index INTEGER NOT NULL,
-            released BOOLEAN NOT NULL DEFAULT FALSE
+            released INTEGER NOT NULL DEFAULT 0
         )",
     )
     .unwrap();
@@ -445,6 +442,8 @@ async fn main() -> std::io::Result<()> {
             .service(web::resource("/contract").route(web::post().to(create_contract)))
             .service(web::resource("/contract/{contract_id}").route(web::get().to(get_contract)))
             .service(web::resource("/release/{contract_id}").route(web::post().to(release_funds)))
+            // Serve static files (e.g. CSS)
+            .service(Files::new("/static", "./static").show_files_listing())
     })
     .bind("0.0.0.0:8080")?
     .run()

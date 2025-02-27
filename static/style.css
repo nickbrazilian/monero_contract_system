@@ -1,0 +1,218 @@
+/* Global Styles */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Arial', sans-serif;
+  background: #0a0a0a repeating-linear-gradient(-45deg, rgba(255,102,0,0.1), rgba(255,102,0,0.1) 5px, transparent 5px, transparent 10px);
+  color: #FF9933;
+  line-height: 1.5;
+}
+
+/* Container */
+.page-container, .contract-wrapper {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Specific for index page */
+.contract-wrapper {
+  max-width: 600px;
+}
+
+/* Headings */
+h1 {
+  font-family: 'Comic Sans MS', cursive;
+  text-align: center;
+  color: #FF6600;
+  font-size: 2.8rem;
+  margin: 0 0 2rem 0;
+  position: relative;
+  text-shadow: 2px 2px 0 #4D1A00;
+}
+
+h1:before, h1:after {
+  content: '🛡️';
+  position: absolute;
+  font-size: 1.5rem;
+  top: -0.8rem;
+  filter: drop-shadow(2px 2px 0 #4D1A00);
+}
+
+h1:before { left: 1rem; }
+h1:after { right: 1rem; }
+
+/* Principles and messages */
+.monero-principles {
+  text-align: center;
+  color: #FFA366;
+  margin: 1rem 0;
+  font-style: italic;
+}
+
+.message {
+  padding: 1.5rem;
+  margin: 2rem 0;
+  border-radius: 5px;
+  font-family: 'Courier New', monospace;
+  border: 2px solid;
+}
+
+.message.success {
+  background: rgba(46, 204, 113, 0.1);
+  color: #2ecc71;
+  border-color: #2ecc71;
+}
+
+.message.error {
+  background: rgba(204, 46, 46, 0.1);
+  color: #cc2e2e;
+  border-color: #cc2e2e;
+}
+
+/* Form Styles */
+.form-group {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  border: 2px groove #FF6600;
+  background: rgba(16, 16, 16, 0.9);
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #FFA366;
+  font-weight: bold;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 0.8rem;
+  margin: 0.5rem 0;
+  border: 2px inset #4D1A00;
+  background: #1a1a1a;
+  color: #FFA366;
+  font-family: 'Courier New', monospace;
+  box-sizing: border-box;
+}
+
+textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+button {
+  background: #4D1A00;
+  color: #FF9933;
+  border: 3px outset #FF6600;
+  padding: 1rem 2rem;
+  margin: 1.5rem auto;
+  display: block;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  background: #661F00;
+  border-style: inset;
+}
+
+/* Contract Fields */
+.contract-field {
+  margin-bottom: 1rem;
+  padding: 1.5rem;
+  border: 2px groove #FF6600;
+  background: rgba(16, 16, 16, 0.9);
+  border-radius: 3px;
+}
+
+.label {
+  font-weight: bold;
+  color: #FFA366;
+  margin-bottom: 0.5rem;
+  font-family: 'Comic Sans MS', cursive;
+}
+
+.value {
+  word-break: break-word;
+  white-space: pre-wrap;
+  font-family: 'Courier New', monospace;
+  color: #FFCC99;
+}
+
+.balance {
+  color: #2ecc71;
+  font-size: 1.3em;
+  font-weight: bold;
+  text-shadow: 0 0 5px rgba(46, 204, 113, 0.3);
+}
+
+/* Release Section */
+.release-form, .released-message, .share-section {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: rgba(16, 16, 16, 0.9);
+  border: 3px solid #FF6600;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.released-message {
+  border: 2px solid #2ecc71;
+  background: #1a3d1a;
+  color: #2ecc71;
+}
+
+/* Share Section */
+.share-text {
+  font-size: 1.1em;
+  color: #FFA366;
+  margin-bottom: 1rem;
+}
+
+.share-link {
+  word-break: break-all;
+  font-family: 'Courier New', monospace;
+  padding: 1rem;
+  background: #1a1a1a;
+  border-radius: 3px;
+  font-size: 1.1em;
+  border: 2px inset #4D1A00;
+  color: #FF9933;
+}
+
+/* Passphrase Warning */
+.passphrase-warning {
+  background: rgba(255, 204, 153, 0.1);
+  border: 2px dashed #FF6600;
+  border-radius: 5px;
+  padding: 1.5rem;
+  margin: 2rem 0;
+  color: #FFA366;
+  font-family: 'Courier New', monospace;
+}
+
+.passphrase-box {
+  font-family: 'Courier New', monospace;
+  font-size: 1.3em;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  background: #1a1a1a;
+  border: 2px dotted #FF6600;
+  border-radius: 5px;
+  word-break: break-all;
+  text-align: center;
+  color: #FF9933;
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  color: #666;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #4D1A00;
+}
+
