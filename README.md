@@ -1,4 +1,4 @@
-#Monero Contract System
+#   Monero Contract System
 
 ## Project Goal
 This project aims to create an open-source web application that allows users to host their own arbitration/escrow platform. Users can specify requirements (e.g., "I want a website built like this in 3 days"), deposit funds into escrow, release funds upon task completion, or contact the website administrator for arbitration if disputes arise.
