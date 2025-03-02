@@ -18,7 +18,7 @@ This project aims to create an open-source web application that allows users to 
    -e TZ=UTC \
    nickbrazilian/xmr-contracts:MVP
 
-# **WATCH THE VIDEO INSTEAD:** [Monero Contract System MVP on odysee](https://nicolasbianconi.com)
+# **WATCH THE VIDEO INSTEAD:** [Monero Contract System MVP on odysee](https://odysee.com/@nickbrazilian:b/monero-contracts-system:5)
 
 ## FAQ
 1. **Do I have to trust the website administrator?**  
