@@ -3,22 +3,20 @@
 ## Project Goal
 This project aims to create an open-source web application that allows users to host their own arbitration/escrow platform. Users can specify requirements (e.g., "I want a website built like this in 3 days"), deposit funds into escrow, release funds upon task completion, or contact the website administrator for arbitration if disputes arise.
 
----
-
 ## How to Run
 1. Pull the Docker image:
    ```bash
    docker pull nickbrazilian/xmr-contracts:MVP
 
 2. Run the container:
-        ``````bash
-        docker run -d \
-        --name xmr-contracts \
-        -p 8080:8080 \
-        -p 18088:18088 \
-        -v xmr-contracts-data:/app/data \
-        -e TZ=UTC \
-        nickbrazilian/xmr-contracts:latest
+   ```bash
+   docker run -d \
+   --name xmr-contracts \
+   -p 8080:8080 \
+   -p 18088:18088 \
+   -v xmr-contracts-data:/app/data \
+   -e TZ=UTC \
+   nickbrazilian/xmr-contracts:MVP
 
 # **VIDEO:** [Monero Contract System MVP](https://nicolasbianconi.com)
 
