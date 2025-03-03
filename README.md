@@ -24,8 +24,9 @@ This project aims to create an open-source web application that allows users to 
 1. **Do I have to trust the website administrator?**  
    Yes, you must trust the website administrator to act fairly in arbitration decisions.
 
-2. **Can the system be decentralized without trusting a website owner?**  
-   Yes! A future solution (planned in Rust) will mimic Bisq (a decentralized Bitcoin exchange), using AI for arbitration and a fallback "blockchain judicial system" for disputes. This MVP exists as a quick resume project, but the decentralized version is next.
+2. **Can there be a decentralized autonomous system the does not require us to trust the webiste owner?**  
+   Yes! A future solution (in Rust) will mimic Bisq (a decentralized Bitcoin exchange), using AI for disputes.
+   I am not working on this project right now because i wanted to have some good looking project with MVP on my CV immediatly.
 
 ## 📧 **Contact Me**  
 Reach out at [nicolas@nicolasbianconi.com](mailto:nicolas@nicolasbianconi.com) to discuss collaboration or project evolution!
