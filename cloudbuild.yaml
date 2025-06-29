@@ -1,11 +1,11 @@
 steps:
 # Build the Docker image
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'southamerica-east1-docker.pkg.dev/monerocontractsystem/xmr/monero_contract_system:$COMMIT_SHA', '.']
+  args: ['build', '-t', 'southamerica-east1-docker.pkg.dev/nicolasbianconi/xmr/monero_contract_system:$COMMIT_SHA', '.']
   
 # Push the image to Artifact Registry
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['push', 'southamerica-east1-docker.pkg.dev/monerocontractsystem/xmr/monero_contract_system:$COMMIT_SHA']
+  args: ['push', 'southamerica-east1-docker.pkg.dev/nicolasbianconi/xmr/monero_contract_system:$COMMIT_SHA']
 
 # Deploy the image to Cloud Run
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -15,7 +15,7 @@ steps:
   - 'deploy'
   - 'monero-service'
   - '--image'
-  - 'southamerica-east1-docker.pkg.dev/monerocontractsystem/xmr/monero_contract_system:$COMMIT_SHA'
+  - 'southamerica-east1-docker.pkg.dev/nicolasbianconi/xmr/monero_contract_system:$COMMIT_SHA'
   - '--region'
   - 'southamerica-east1'
   - '--allow-unauthenticated'
